@@ -1,0 +1,60 @@
+#Model RF
+set.seed(42)
+model_rf <- caret::train(FraudFound_P ~ .,
+                         data = training_set,
+                         method = "rf",,
+                         trControl = trainControl(method = "repeatedcv", 
+                                                  number = 10, 
+                                                  repeats = 10, 
+                                                  verboseIter = FALSE))
+
+final <- data.frame(actual = test_set$FraudFound_P ,
+                    predict(model_rf, newdata = test_set, type = "prob"))
+final$predict <- ifelse(final$FraudFound_P > 0.5, "0", "1")
+
+cm_original <- confusionMatrix(final$predict, test_set$FraudFound_P)
+
+#Under sampling RF
+ctrl <- trainControl(method = "repeatedcv", 
+                     number = 10, 
+                     repeats = 10, 
+                     verboseIter = FALSE,
+                     sampling = "down")
+
+set.seed(42)
+model_rf_under <- caret::train(FraudFound_P ~ .,
+                               data = training_set,
+                               method = "rf",
+                               trControl = ctrl)
+
+head(final_under)
+
+final_under <- data.frame(actual = test_set$FraudFound_P ,
+                          predict(model_rf_under, newdata = test_set, type = "prob"))
+
+final_under$X0 <- ifelse(final_under$X0 > 0.5, "0", "1")
+final_under$X1 <- ifelse(final_under$X1 > 0.5, "1", "0")
+final_under$predict <- final_under$X0+final_under$X1
+
+cm_under <- confusionMatrix(final_under$predict, test_set$FraudFound_P)
+
+#OverSamplinf RF
+#Under sampling RF
+ctrl <- trainControl(method = "repeatedcv", 
+                     number = 10, 
+                     repeats = 10, 
+                     verboseIter = FALSE,
+                     sampling = "up")
+
+set.seed(42)
+model_rf_over <- caret::train(FraudFound_P ~ .,
+                              data = train_data,
+                              method = "rf",
+                              preProcess = c("scale", "center"),
+                              trControl = ctrl)
+
+final_over <- data.frame(actual = test_set$FraudFound_P ,
+                         predict(model_rf, newdata = test_set, type = "prob"))
+final_over$predict <- ifelse(final_over$FraudFound_P > 0.5, "0", "1")
+
+cm_over <- confusionMatrix(final_over$predict, test_set$FraudFound_P)
